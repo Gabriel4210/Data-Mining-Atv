@@ -105,28 +105,29 @@ novabase=downSample(base[,-24], base$Pagamento, yname= "Pagamento")
 trein =sample(1:nrow(novabase), size=0.75*nrow(novabase))
 treino=novabase[trein,]
 teste=novabase[-trein,]
+trainControl = trainControl(method="cv", number=10)
 
 
 ##GLM
-rl = train(factor(Pagamento) ~ ., data = treino, method = 'glm')
+rl = train(factor(Pagamento) ~ ., data = treino, method = 'glm', trControl=trainControl)
 predicao1 = predict(rl, newdata = teste)
 cm1 = confusionMatrix(predicao1, factor(teste[['Pagamento']]) )
 cm1
 
 ##KNN
-knn = train(factor(Pagamento) ~ . , data = treino, method = 'knn')
+knn = train(factor(Pagamento) ~ . , data = treino, method = 'knn', trControl=trainControl)
 predicao2 = predict(knn, newdata = teste)
 cm2 = confusionMatrix(predicao2, factor(teste[['Pagamento']]) )
 cm2
 
 ##NB
-nb = train(factor(Pagamento) ~ ., data = treino, method = 'nb')
+nb = train(factor(Pagamento) ~ ., data = treino, method = 'nb', trControl=trainControl)
 predicao3 = predict(nb, newdata = teste)
 cm3 = confusionMatrix(predicao3, factor(teste[['Pagamento']]) )
 cm3
 trei
 ##Arvore
-arvore = train(factor(Pagamento) ~ . , data = treino, method = 'rpart')
+arvore = train(factor(Pagamento) ~ . , data = treino, method = 'rpart', trControl=trainControl)
 predicao4 = predict(arvore, newdata = teste)
 cm4 = confusionMatrix(predicao4, factor(teste[['Pagamento']]) )
 cm4
@@ -135,31 +136,30 @@ cm4
 lda = train(factor(Pagamento) ~ limite + factor(sexo) + factor(educacao) + idade +
               vesetemb + veagost+ veabril + vejul+ vejun+ vemaio+
               pantsetemb + pantagost+ pantabril + pantjul+ pantjun+ pantmaio+
-              factor(bomsete)+ factor(bomagost)+ factor(bomabril) + factor(bomjul)+ factor(bomjun)+ factor(bommaio) , data = treino, method = 'lda')
+              factor(bomsete)+ factor(bomagost)+ factor(bomabril) + factor(bomjul)+ factor(bomjun)+ factor(bommaio) , data = treino, method = 'lda', trControl=trainControl)
 predicao5 = predict(lda, newdata = teste)
 cm5 = confusionMatrix(predicao5, factor(teste[['Pagamento']]) )
 cm5
 
 ##GLMboost
-glmboost = train(Pagamento ~ ., data = treino, method = "glmboost")
+glmboost = train(Pagamento ~ ., data = treino, method = "glmboost", trControl=trainControl)
 predicao6 = predict(glmboost, newdata = teste)
 cm6 = confusionMatrix(predicao6, factor(teste[['Pagamento']])  )
 cm6
 
 #RF
-rf = train(factor(Pagamento) ~ . , data = treino, method = 'rf')
+rf = train(factor(Pagamento) ~ . , data = treino, method = 'rf', trControl=trainControl)
 predicao7 = predict(rf, newdata = teste)
 cm7 = confusionMatrix(predicao7, factor(teste[['Pagamento']])  )
 cm7
 
 #bag
-bag = train(factor(Pagamento) ~ . , data = treino, method = 'treebag')
+bag = train(factor(Pagamento) ~ . , data = treino, method = 'treebag',trControl=trainControl)
 predicao8 = predict(bag, newdata = teste)
 cm8 = confusionMatrix(predicao8, factor(teste[['Pagamento']]) )
 cm8
 
 #GBM
-trainControl = trainControl(method="cv", number=10)
 set.seed(421)
 gbm = train(factor(Pagamento) ~ .
             , data=treino
