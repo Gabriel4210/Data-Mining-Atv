@@ -60,8 +60,8 @@ table(base$Pagamento, base$pjul)
 table(base$Pagamento, base$pmaio)
 table(base$Pagamento, base$pabril)
 
-#corrplot::corrplot(DescTools::PairApply(base[,c(2,3,4,6,7,8,9,10,11,24)], DescTools::CramerV), method = "number", type = "lower", tl.cex = 0.8)
-#DescTools::PairApply(base[,c(2,3,4,6,7,8,9,10,11,24)], DescTools::CramerV)
+corrplot::corrplot(DescTools::PairApply(base[,c(2,3,4,6,7,8,9,10,11,24)], DescTools::CramerV), method = "number", type = "lower", tl.cex = 0.8)
+DescTools::PairApply(base[,c(2,3,4,6,7,8,9,10,11,24)], DescTools::CramerV)
 
 #Notamos que existe uma correlação alta entre a variavel resposta e os ultimos pagamentos
 #que diminui conforme se distancia no tempo, similar a uma série temporal e de fato
@@ -82,6 +82,19 @@ plot(base$Pagamento, base$pantjun)
 plot(base$Pagamento, base$pantmaio)
 plot(base$Pagamento, base$pantabril)
 
+base= base%>%filter(limite < 400000) 
+base= base%>%filter(vesetemb < 400000)
+base= base%>%filter(veagost < 400000)
+base= base%>%filter(vejul < 400000)
+base= base%>%filter(vejun < 400000)
+base= base%>%filter(vemaio < 400000)
+base= base%>%filter(veabril < 400000)
+base= base%>%filter(pantsetemb < 400000)
+base= base%>%filter(pantagost < 400000)
+base= base%>%filter(pantjul < 400000)
+base= base%>%filter(pantjun < 400000)
+base= base%>%filter(pantmaio < 400000)
+base= base%>%filter(pantabril < 400000)
 #corrplot(cor(base[,c(1,5,12,13,14,15,16,17,18,19,20,21,22,23)]), method = "number", type = "lower", tl.cex = 0.8)
 
 base$bomsete = as.factor(ifelse(base$psetemb == "-1" | base$psetemb == "-2" | base$psetemb == "0" , 0,1))
@@ -92,8 +105,8 @@ base$bommaio = as.factor(ifelse(base$pmaio == "-1" | base$pmaio == "-2" | base$p
 base$bomabril = as.factor(ifelse(base$pabril == "-1" | base$pabril == "-2" | base$pabril == "0" , 0,1))
 
 
-#corrplot::corrplot(DescTools::PairApply(base[,c(24,25,26,27,28,29,30)], DescTools::CramerV), method = "number", type = "lower", tl.cex = 0.8)
-#DescTools::PairApply(base[,c(24,25,26,27,28,29,30))], DescTools::CramerV)
+corrplot::corrplot(DescTools::PairApply(base[,c(24,25,26,27,28,29,30)], DescTools::CramerV), method = "number", type = "lower", tl.cex = 0.8)
+DescTools::PairApply(base[,c(24,25,26,27,28,29,30)], DescTools::CramerV)
 
 summary(base)
 #Podemos notar que a variavel de resposta é desbalanceada, o modelo ira tender a
@@ -105,7 +118,7 @@ novabase=downSample(base[,-24], base$Pagamento, yname= "Pagamento")
 trein =sample(1:nrow(novabase), size=0.75*nrow(novabase))
 treino=novabase[trein,]
 teste=novabase[-trein,]
-trainControl = trainControl(method="cv", number=10)
+trainControl = trainControl(method="cv", number=10, repeats = 5)
 
 
 ##GLM
@@ -121,11 +134,14 @@ cm2 = confusionMatrix(predicao2, factor(teste[['Pagamento']]) )
 cm2
 
 ##NB
-nb = train(factor(Pagamento) ~ ., data = treino, method = 'nb', trControl=trainControl)
+nb = train(factor(Pagamento) ~ limite + factor(sexo) + factor(educacao) + idade +
+             vesetemb + veagost+ veabril + vejul+ vejun+ vemaio+
+             pantsetemb + pantagost+ pantabril + pantjul+ pantjun+ pantmaio+
+             factor(bomsete)+ factor(bomagost)+ factor(bomabril) + factor(bomjul)+ factor(bomjun)+ factor(bommaio), data = treino, method = 'nb', trControl=trainControl)
 predicao3 = predict(nb, newdata = teste)
 cm3 = confusionMatrix(predicao3, factor(teste[['Pagamento']]) )
 cm3
-trei
+
 ##Arvore
 arvore = train(factor(Pagamento) ~ . , data = treino, method = 'rpart', trControl=trainControl)
 predicao4 = predict(arvore, newdata = teste)
@@ -168,9 +184,10 @@ gbm = train(factor(Pagamento) ~ .
             , trControl=trainControl
             , verbose=FALSE
             , bag.fraction=0.75
+            , metric = c("Accuracy", "Sensitivity")
 )                  
 
-print(gbm)
+gbm$metric
 
 cm1$byClass
 cm2$byClass
